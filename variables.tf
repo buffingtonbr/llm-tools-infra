@@ -57,3 +57,9 @@ variable "current_user_object_id" {
   description = "AAD object ID of the user running TF (gets data-plane RBAC). Empty = autodetect."
   default     = ""
 }
+
+variable "speech_account_name" {
+  type        = string
+  description = "Globally unique Azure AI Speech account name."
+  default     = "llm-tools-speech-bb"
+}
