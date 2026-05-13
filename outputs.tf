@@ -25,3 +25,11 @@ output "openai_chat_deployment" {
 output "openai_embed_deployment" {
   value = azurerm_cognitive_deployment.embedding_3_small.name
 }
+
+output "keyvault_name" {
+  value = azurerm_key_vault.personal.name
+}
+
+output "keyvault_uri" {
+  value = azurerm_key_vault.personal.vault_uri
+}
