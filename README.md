@@ -9,6 +9,7 @@ Existing (imported from MSX_LLM's local state on first init):
 - Azure AI Search (free) `llm-tools-search`
 - Storage account `llmtoolsstor` + container `transcripts`
 - Subscription budget `monthly-150` ($150/mo, 50/80/100 alerts)
+- Personal Key Vault `kv-llmtools-personal` and its vault-scoped human-owner RBAC
 
 Net-new (will be created on first apply):
 - Azure OpenAI account `llm-tools-openai-bb` (S0)
@@ -16,6 +17,11 @@ Net-new (will be created on first apply):
   - Deployment `text-embedding-3-small` (GlobalStandard, 50K TPM)
 - Role grant: running user → `Cognitive Services OpenAI User` on the OpenAI account
 - Role grant: running user → `Storage Blob Data Contributor` on the storage account
+- Role grant: running user → `Key Vault Administrator` on `kv-llmtools-personal`
+
+The pre-existing `Key Vault Secrets Officer` assignment remains during the
+Administrator rollout. Remove it only after key, certificate, and secret metadata
+access is verified through the new role.
 
 ## Backend
 
