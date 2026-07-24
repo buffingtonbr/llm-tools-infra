@@ -20,7 +20,7 @@ jobs:
       working_dir: "."
       run_tflint: true
       run_checkov: true
-      runs_on: '"ubuntu-latest"'
+      runs_on: '["ubuntu-latest"]'
     permissions:
       contents: read
       pull-requests: write
