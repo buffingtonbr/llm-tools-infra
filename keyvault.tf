@@ -45,10 +45,18 @@ resource "azurerm_key_vault" "personal" {
   tags = azurerm_resource_group.secrets.tags
 }
 
-# Signed-in user gets full secret CRUD.
+# Preserve the existing secret CRUD grant until administrator access is live-verified.
 resource "azurerm_role_assignment" "kv_secrets_officer" {
   scope                = azurerm_key_vault.personal.id
   role_definition_name = "Key Vault Secrets Officer"
   principal_id         = local.current_user_oid
   principal_type       = "User"
+}
+
+resource "azurerm_role_assignment" "kv_administrator" {
+  scope                = azurerm_key_vault.personal.id
+  role_definition_name = "Key Vault Administrator"
+  principal_id         = local.current_user_oid
+  principal_type       = "User"
+  description          = "Human owner administration for the personal Key Vault data plane."
 }

@@ -1,0 +1,26 @@
+name: terraform-validate
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: tf-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    uses: BRBuffington/terraform-pipelines-github/.github/workflows/terraform-validate.yml@main
+    with:
+      working_dir: "."
+      run_tflint: true
+      run_checkov: true
+      runs_on: '["ubuntu-latest"]'
+    permissions:
+      contents: read
+      pull-requests: write
