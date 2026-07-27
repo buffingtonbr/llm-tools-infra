@@ -1,0 +1,72 @@
+name: terraform-cd
+
+# Governed apply path for llm-tools-infra.
+#
+# Why this exists: this was the only infra repo with terraform-validate.yml and
+# no terraform-cd.yml. beelist-infra, personal-automation-infra, mcp-infra and
+# monitoring-infra all call the shared reusable pipeline; this repo did not, so
+# every apply had to be a local `terraform apply` from a workstation. That is an
+# unreviewed CLI mutation of shared infrastructure and is not an acceptable
+# substitute for a reviewed pipeline.
+#
+# REQUIRED out-of-band setup before this can run (owner action, one time):
+#   GitHub Environment 'personal' with vars:
+#     AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID
+#     TF_BACKEND_RESOURCE_GROUP=tfstate-rg
+#     TF_BACKEND_STORAGE_ACCOUNT=tfstatebbuf01
+#     TF_BACKEND_CONTAINER=tfstate
+#     TF_BACKEND_KEY_PREFIX=llm-tools
+#   GitHub Environment 'personal-apply' with required reviewers.
+#   Entra app with a federated credential for this repo on each environment,
+#   holding Contributor on the subscription plus Key Vault Administrator on
+#   kv-llmtools-personal (the config manages vault RBAC).
+#
+# NOTE: environments/personal.tfvars pins current_user_object_id. Without it the
+# CI principal would be autodetected and Brian's Key Vault Administrator role
+# assignment would be re-pointed at the service principal.
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub Environment (must match a federated credential)
+        type: choice
+        options: [personal]
+        default: personal
+      plan_only:
+        description: Plan only (no apply)
+        type: boolean
+        default: true
+      destroy:
+        description: Destroy mode
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths:
+      - "*.tf"
+      - "environments/**"
+      - ".github/workflows/terraform-*.yml"
+
+concurrency:
+  group: tf-cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cd:
+    uses: BRBuffington/terraform-pipelines-github/.github/workflows/terraform-cd.yml@main
+    with:
+      environment: ${{ inputs.environment || 'personal' }}
+      configs: '["personal"]'
+      # plan_only is forced true on push; workflow_dispatch honours the explicit
+      # input. Mirrors the mcp-infra wrapper, which documents a GH Actions
+      # boolean-coercion footgun in the naive ternary form.
+      plan_only: ${{ github.event_name == 'push' || inputs.plan_only }}
+      destroy: ${{ inputs.destroy || false }}
+      working_dir: "."
+      tfvars_dir: "environments"
+      runs_on: '["ubuntu-latest"]'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
