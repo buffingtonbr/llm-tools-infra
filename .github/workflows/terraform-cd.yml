@@ -1,0 +1,92 @@
+name: terraform-cd
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: GitHub Environment matching the personal OIDC credential
+        type: choice
+        options: [personal]
+        default: personal
+      configs:
+        description: JSON array of tfvars basenames under environments/
+        type: string
+        default: '["brb-llmtools-prd-eus"]'
+      plan_only:
+        description: Plan only; set false only with confirm_action=APPLY
+        type: boolean
+        default: true
+      destroy:
+        description: Destroy mode; requires confirm_action=DESTROY
+        type: boolean
+        default: false
+      allow_recreate:
+        description: Allow intentional destroy/replace or >20-resource initial apply
+        type: boolean
+        default: false
+      allow_version_rollback:
+        description: Allow only an explicitly approved image rollback
+        type: boolean
+        default: false
+      confirm_action:
+        description: Type APPLY for apply or DESTROY for destroy; blank for plan-only
+        type: string
+        default: ""
+
+concurrency:
+  group: tf-cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-action:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate protected environment and confirmation gates
+        env:
+          DISPATCH_REF: ${{ github.ref }}
+          TARGET_ENV: ${{ inputs.environment }}
+          PLAN_ONLY: ${{ inputs.plan_only }}
+          DESTROY: ${{ inputs.destroy }}
+          CONFIRM_ACTION: ${{ inputs.confirm_action }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$DISPATCH_REF" != "refs/heads/main" ]]; then
+            echo "::error::terraform-cd may only run from refs/heads/main (got '$DISPATCH_REF')."
+            exit 1
+          fi
+          if [[ "$TARGET_ENV" != "personal" ]]; then
+            echo "::error::Unsupported deployment environment '$TARGET_ENV'; expected 'personal' (apply resolves to 'personal-apply')."
+            exit 1
+          fi
+          if [[ "$DESTROY" == "true" && "$CONFIRM_ACTION" != "DESTROY" ]]; then
+            echo "::error::Destroy requires confirm_action=DESTROY"
+            exit 1
+          fi
+          if [[ "$PLAN_ONLY" == "false" && "$DESTROY" != "true" && "$CONFIRM_ACTION" != "APPLY" ]]; then
+            echo "::error::Apply requires confirm_action=APPLY"
+            exit 1
+          fi
+
+  cd:
+    if: github.ref == 'refs/heads/main'
+    needs: validate-action
+    uses: BRBuffington/terraform-pipelines-github/.github/workflows/terraform-cd.yml@main
+    with:
+      # Base environment `personal` runs plan; the reusable workflow derives `personal-apply` for apply.
+      environment: ${{ inputs.environment || 'personal' }}
+      configs: ${{ inputs.configs || '["brb-llmtools-prd-eus"]' }}
+      plan_only: ${{ github.event_name == 'push' || inputs.plan_only }}
+      destroy: ${{ inputs.destroy || false }}
+      allow_recreate: ${{ inputs.allow_recreate || false }}
+      allow_version_rollback: ${{ inputs.allow_version_rollback || false }}
+      pipelines_owner: "BRBuffington"
+      working_dir: "."
+      tfvars_dir: "environments"
+      stamp_last_applied: false
+      runs_on: '"ubuntu-latest"'
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write

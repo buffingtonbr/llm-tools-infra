@@ -22,6 +22,10 @@ output "openai_chat_deployment" {
   value = azurerm_cognitive_deployment.gpt_4_1_mini.name
 }
 
+output "openai_luna_deployment" {
+  value = azurerm_cognitive_deployment.gpt_5_6_luna.name
+}
+
 output "openai_embed_deployment" {
   value = azurerm_cognitive_deployment.embedding_3_small.name
 }

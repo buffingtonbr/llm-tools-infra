@@ -4,6 +4,11 @@
 *.tfstate.backup
 *.tfvars
 *.tfvars.json
+!environments/
+!environments/*.tfvars
 tfplan*
 crash.log
 *.log
+.pytest_cache/
+__pycache__/
+*.pyc
