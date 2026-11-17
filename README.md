@@ -13,51 +13,32 @@ Existing (imported from MSX_LLM's local state on first init):
 
 Net-new (will be created on first apply):
 - Azure OpenAI account `llm-tools-openai-bb` (S0)
-  - Deployment `gpt-4-1-mini` (GlobalStandard, 50K TPM)
+  - Deployment `gpt-4-1-mini` (`gpt-4.1-mini` `2025-04-14`, GlobalStandard, 50K TPM)
+  - Deployment `gpt-4-1` (`gpt-4.1` `2025-04-14`, Standard, 10K TPM — imported from prior CLI drift)
+  - Deployment `gpt-5-1` (`gpt-5.1` `2025-11-13`, Standard, 10K TPM — imported from prior CLI drift)
+  - Deployment `gpt-5-6-luna` (`gpt-5.6-luna` `2026-07-09`, GlobalStandard, 50K TPM)
   - Deployment `text-embedding-3-small` (GlobalStandard, 50K TPM)
-- Role grant: running user → `Cognitive Services OpenAI User` on the OpenAI account
-- Role grant: running user → `Storage Blob Data Contributor` on the storage account
-- Role grant: running user → `Key Vault Administrator` on `kv-llmtools-personal`
+- Role grant: human owner (`var.current_user_object_id`) → `Cognitive Services OpenAI User` on the OpenAI account
+- Role grant: human owner (`var.current_user_object_id`) → `Storage Blob Data Contributor` on the storage account
+- Role grant: human owner (`var.current_user_object_id`) → `Key Vault Administrator` + `Key Vault Secrets Officer` on `kv-llmtools-personal`
 
 The pre-existing `Key Vault Secrets Officer` assignment remains during the
 Administrator rollout. Remove it only after key, certificate, and secret metadata
 access is verified through the new role.
 
-## Backend
+## Backend & Governed CD
 
-Remote state in `tfstatebbuf01` / container `tfstate` / key `llm-tools.tfstate` (provisioned by https://github.com/buffingtonbr/llm-tools-bootstrap).
+- Remote state in `tfstatebbuf01` / container `tfstate` / nested per-config key `llm-tools/brb-llmtools-prd-eus.tfstate` (migrated from flat `llm-tools.tfstate` with a timestamped backup under `llm-tools/backups/2026-11-17-pre-cd-migration/llm-tools.tfstate`).
+- Governed GitHub Actions workflows:
+  - `.github/workflows/terraform-validate.yml` — fmt / init / validate / tflint / checkov + protected-environment alignment tests on every PR.
+  - `.github/workflows/terraform-cd.yml` — manual `workflow_dispatch` on `main` only (`custom_branch_policies = true`, `main` only) calling `BRBuffington/terraform-pipelines-github/.github/workflows/terraform-cd.yml@main` with `pipelines_owner = "BRBuffington"`.
+  - GitHub Environments: `personal` (plan, OIDC subject `repo:buffingtonbr/llm-tools-infra:environment:personal`) and `personal-apply` (apply, OIDC subject `repo:buffingtonbr/llm-tools-infra:environment:personal-apply`, gated by `confirm_action=APPLY`).
 
-Auth: Entra ID via `az login`. No secrets.
-
-## First-time setup
+### Local read-only inspection
 
 ```powershell
-# Make sure az is logged into the right subscription
-az account set --subscription 05e9015f-a93d-474b-8268-537f5e11f479
-
-# Init against the remote backend
-terraform init
-
-# Import the 5 existing resources from MSX_LLM into this state
-$sub = "05e9015f-a93d-474b-8268-537f5e11f479"
-terraform import azurerm_resource_group.llm "/subscriptions/$sub/resourceGroups/rg-llm-tools"
-terraform import azurerm_search_service.search "/subscriptions/$sub/resourceGroups/rg-llm-tools/providers/Microsoft.Search/searchServices/llm-tools-search"
-terraform import azurerm_storage_account.stor "/subscriptions/$sub/resourceGroups/rg-llm-tools/providers/Microsoft.Storage/storageAccounts/llmtoolsstor"
-terraform import azurerm_storage_container.transcripts "https://llmtoolsstor.blob.core.windows.net/transcripts"
-terraform import azurerm_consumption_budget_subscription.monthly "/subscriptions/$sub/providers/Microsoft.Consumption/budgets/monthly-150"
-
-# Confirm the plan only shows OpenAI + role grants as net-new
-terraform plan -out tfplan
-
-# Apply
-terraform apply tfplan
+terraform init -reconfigure '-backend-config=backend.hcl' '-backend-config=use_oidc=false' '-backend-config=use_cli=true'
+terraform plan -lock=false '-var-file=environments/brb-llmtools-prd-eus.tfvars'
 ```
 
-After this is done:
-- Delete TF code from MSX_LLM (`infra/main.tf`, `infra/resources.tf`, `infra/variables.tf`, `infra/outputs.tf`, `infra/terraform.tfstate*`, `infra/.terraform/`, `infra/.terraform.lock.hcl`, `infra/terraform.tfvars`, `infra/tfplan`).
-- Delete TF code from Copilot (`infra/terraform/`).
-- Keep MSX_LLM's `infra/azure_costs.py` and indexer scripts — those consume Azure, they don't manage it.
-
-## Day-2
-
-Just `terraform plan` / `terraform apply` from this directory. State lives in Azure. No state files in git.
+All infrastructure mutations go through reviewed PRs and `.github/workflows/terraform-cd.yml` — never a local `terraform apply` or ad-hoc `az` CLI mutation.

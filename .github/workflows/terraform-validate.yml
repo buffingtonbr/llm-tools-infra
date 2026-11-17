@@ -24,3 +24,13 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+
+  workflow-alignment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.3
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --quiet pytest pyyaml
+      - run: python -m pytest tests/test_workflow_alignment.py -q

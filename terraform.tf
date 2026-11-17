@@ -8,14 +8,7 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    use_azuread_auth     = true
-    use_cli              = true
-    resource_group_name  = "tfstate-rg"
-    storage_account_name = "tfstatebbuf01"
-    container_name       = "tfstate"
-    key                  = "llm-tools.tfstate"
-  }
+  backend "azurerm" {}
 }
 
 provider "azurerm" {
