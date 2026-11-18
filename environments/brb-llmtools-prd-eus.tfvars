@@ -17,4 +17,5 @@ monitoring_workspace_name = "law-monitoring-bbuf"
 
 # Pin human owner Entra object ID explicitly so OIDC service-principal CI runs
 # never replace owner data-plane RBAC assignments with the CI principal.
-current_user_object_id = "5cc6afe4-6e97-4c43-9607-76bf5c8ace93"
+current_user_object_id         = "5cc6afe4-6e97-4c43-9607-76bf5c8ace93"
+ci_service_principal_object_id = "4f8a0412-240b-4410-97a8-99fe0cd292ee"
