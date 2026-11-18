@@ -22,6 +22,7 @@ Net-new (will be created on first apply):
   - Deployment `decision-1-1` (`Microsoft-Decision-1.1` `1`, GlobalStandard, 500 capacity)
 - Role grant: human owner (`var.current_user_object_id`) → `Cognitive Services OpenAI User` on the OpenAI account
 - Role grant: human owner (`var.current_user_object_id`) → `Cognitive Services User` on the Foundry account
+- Workload identity: Entra service principal `sp-slave1-foundry-decision-prd` authenticated via Key Vault-generated X.509 certificate `slave1-foundry-decision-cert` (zero secrets in Terraform state) → `Cognitive Services User` on the Foundry account
 - Role grant: human owner (`var.current_user_object_id`) → `Storage Blob Data Contributor` on the storage account
 - Role grant: human owner (`var.current_user_object_id`) → `Key Vault Administrator` + `Key Vault Secrets Officer` on `kv-llmtools-personal`
 

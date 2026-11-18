@@ -63,3 +63,9 @@ variable "current_user_object_id" {
   description = "AAD object ID of the user running TF (gets data-plane RBAC). Empty = autodetect."
   default     = ""
 }
+
+variable "ci_service_principal_object_id" {
+  type        = string
+  description = "Entra object ID of the governed GitHub Actions OIDC service principal for Key Vault certificate provisioning."
+  default     = ""
+}

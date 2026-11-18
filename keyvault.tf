@@ -60,3 +60,22 @@ resource "azurerm_role_assignment" "kv_administrator" {
   principal_type       = "User"
   description          = "Human owner administration for the personal Key Vault data plane."
 }
+
+resource "azurerm_role_assignment" "ci_kv_certificates_officer" {
+  count = var.ci_service_principal_object_id != "" ? 1 : 0
+
+  scope                = azurerm_key_vault.personal.id
+  role_definition_name = "Key Vault Certificates Officer"
+  principal_id         = var.ci_service_principal_object_id
+  principal_type       = "ServicePrincipal"
+  description          = "Allows the governed llm-tools-infra OIDC runner to manage Key Vault-generated workload certificates."
+}
+
+resource "time_sleep" "wait_ci_kv_cert_rbac" {
+  depends_on = [
+    azurerm_role_assignment.kv_administrator,
+    azurerm_role_assignment.ci_kv_certificates_officer,
+  ]
+
+  create_duration = "45s"
+}

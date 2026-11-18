@@ -6,6 +6,14 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.20"
     }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 3.0"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.12"
+    }
   }
 
   backend "azurerm" {}
@@ -18,7 +26,15 @@ provider "azurerm" {
     cognitive_account {
       purge_soft_delete_on_destroy = true
     }
+    key_vault {
+      purge_soft_deleted_certificates_on_destroy = true
+      recover_soft_deleted_certificates          = true
+    }
   }
+}
+
+provider "azuread" {
+  tenant_id = var.tenant_id
 }
 
 data "azurerm_subscription" "current" {}

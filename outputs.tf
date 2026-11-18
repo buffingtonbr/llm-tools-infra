@@ -38,6 +38,14 @@ output "foundry_decision_deployment" {
   value = azurerm_cognitive_deployment.microsoft_decision_1_1.name
 }
 
+output "foundry_sp_client_id" {
+  value = azuread_application.slave1_foundry_decision.client_id
+}
+
+output "foundry_sp_cert_secret_name" {
+  value = azurerm_key_vault_certificate.slave1_foundry_decision.name
+}
+
 output "keyvault_name" {
   value = azurerm_key_vault.personal.name
 }
