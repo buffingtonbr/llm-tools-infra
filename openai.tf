@@ -86,6 +86,22 @@ resource "azurerm_cognitive_deployment" "gpt_5_6_luna" {
   }
 }
 
+resource "azurerm_cognitive_deployment" "gpt_6_luna" {
+  name                 = "gpt-6-luna"
+  cognitive_account_id = azurerm_cognitive_account.openai.id
+
+  model {
+    format  = "OpenAI"
+    name    = "gpt-6-luna"
+    version = "2026-09-22"
+  }
+
+  sku {
+    name     = "GlobalStandard"
+    capacity = 50
+  }
+}
+
 resource "azurerm_cognitive_deployment" "embedding_3_small" {
   name                 = "text-embedding-3-small"
   cognitive_account_id = azurerm_cognitive_account.openai.id
