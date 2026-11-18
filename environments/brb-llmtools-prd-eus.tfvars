@@ -6,6 +6,7 @@ search_service_name       = "llm-tools-search"
 storage_account_name      = "llmtoolsstor"
 transcripts_container     = "transcripts"
 openai_account_name       = "llm-tools-openai-bb"
+foundry_account_name      = "llm-tools-foundry-bb"
 alert_email               = "bbuffington@microsoft.com"
 monthly_budget_amount     = 150
 kv_rg_name                = "rg-llmtools-secrets"

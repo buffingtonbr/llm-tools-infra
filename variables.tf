@@ -41,6 +41,12 @@ variable "openai_account_name" {
   default     = "llm-tools-openai-bb"
 }
 
+variable "foundry_account_name" {
+  type        = string
+  description = "Globally unique Microsoft Foundry (AIServices) account name."
+  default     = "llm-tools-foundry-bb"
+}
+
 variable "alert_email" {
   type        = string
   description = "Email for budget alerts."
