@@ -18,7 +18,10 @@ Net-new (will be created on first apply):
   - Deployment `gpt-5-1` (`gpt-5.1` `2025-11-13`, Standard, 10K TPM — imported from prior CLI drift)
   - Deployment `gpt-5-6-luna` (`gpt-5.6-luna` `2026-07-09`, GlobalStandard, 50K TPM)
   - Deployment `text-embedding-3-small` (GlobalStandard, 50K TPM)
+- Microsoft Foundry (`AIServices`) account `llm-tools-foundry-bb` (S0, keyless Entra-only)
+  - Deployment `microsoft-decision-1-1` (`Microsoft-Decision-1.1` `1`, GlobalStandard, 500 capacity)
 - Role grant: human owner (`var.current_user_object_id`) → `Cognitive Services OpenAI User` on the OpenAI account
+- Role grant: human owner (`var.current_user_object_id`) → `Cognitive Services User` on the Foundry account
 - Role grant: human owner (`var.current_user_object_id`) → `Storage Blob Data Contributor` on the storage account
 - Role grant: human owner (`var.current_user_object_id`) → `Key Vault Administrator` + `Key Vault Secrets Officer` on `kv-llmtools-personal`
 

@@ -30,6 +30,14 @@ output "openai_embed_deployment" {
   value = azurerm_cognitive_deployment.embedding_3_small.name
 }
 
+output "foundry_endpoint" {
+  value = azurerm_cognitive_account.foundry.endpoint
+}
+
+output "foundry_decision_deployment" {
+  value = azurerm_cognitive_deployment.microsoft_decision_1_1.name
+}
+
 output "keyvault_name" {
   value = azurerm_key_vault.personal.name
 }
