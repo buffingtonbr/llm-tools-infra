@@ -20,7 +20,7 @@ resource "azurerm_cognitive_account" "foundry" {
 }
 
 resource "azurerm_cognitive_deployment" "microsoft_decision_1_1" {
-  name                 = "microsoft-decision-1-1"
+  name                 = "decision-1-1"
   cognitive_account_id = azurerm_cognitive_account.foundry.id
 
   model {
