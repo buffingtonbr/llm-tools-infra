@@ -23,6 +23,10 @@ output "openai_chat_deployment" {
 }
 
 output "openai_luna_deployment" {
+  value = azurerm_cognitive_deployment.gpt_6_luna.name
+}
+
+output "openai_gpt_5_6_luna_deployment" {
   value = azurerm_cognitive_deployment.gpt_5_6_luna.name
 }
 
